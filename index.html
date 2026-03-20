@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>FirstBoot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --bg-void:       #050508;
+            --bg-surface:    #0b0d14;
+            --bg-card:       rgba(12, 15, 28, 0.65);
+            --bg-input:      rgba(255, 255, 255, 0.03);
+
+            --emerald:       #34d399;
+            --emerald-dim:   rgba(52, 211, 153, 0.08);
+            --emerald-glow:  rgba(52, 211, 153, 0.25);
+            --emerald-mid:   rgba(52, 211, 153, 0.15);
+            --cyan:          #22d3ee;
+            --violet:        #a78bfa;
+
+            --text-primary:  #e8ecf4;
+            --text-secondary:#7a8194;
+            --text-muted:    #3d4355;
+            --text-green:    #6ee7b7;
+
+            --border-dim:    rgba(255,255,255,0.05);
+            --border-glow:   rgba(52, 211, 153, 0.4);
+
+            --font-sans:     'Inter', -apple-system, sans-serif;
+            --font-mono:     'JetBrains Mono', 'SF Mono', monospace;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { height: 100%; }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-void);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ════════════════════════════════════════
+           GRID BACKGROUND
+           ════════════════════════════════════════ */
+        .grid-bg {
+            position: fixed; inset: 0; z-index: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(52,211,153,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(52,211,153,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 20%, transparent 100%);
+            -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 20%, transparent 100%);
+        }
+
+        /* Glow blobs */
+        .glow-blob {
+            position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
+            filter: blur(120px); opacity: 0.3; will-change: transform;
+        }
+        .blob-1 {
+            width: 600px; height: 600px; top: -15%; left: -10%;
+            background: radial-gradient(circle, var(--emerald) 0%, transparent 70%);
+            animation: drift1 20s ease-in-out infinite;
+        }
+        .blob-2 {
+            width: 400px; height: 400px; bottom: -10%; right: -5%;
+            background: radial-gradient(circle, var(--cyan) 0%, transparent 70%);
+            animation: drift2 25s ease-in-out infinite;
+        }
+        .blob-3 {
+            width: 350px; height: 350px; top: 40%; left: 60%;
+            background: radial-gradient(circle, var(--violet) 0%, transparent 70%);
+            animation: drift3 18s ease-in-out infinite; opacity: 0.15;
+        }
+
+        @keyframes drift1 {
+            0%,100% { transform: translate(0,0); }
+            50%     { transform: translate(50px,60px); }
+        }
+        @keyframes drift2 {
+            0%,100% { transform: translate(0,0); }
+            50%     { transform: translate(-40px,-50px); }
+        }
+        @keyframes drift3 {
+            0%,100% { transform: translate(0,0); }
+            50%     { transform: translate(-50px,30px); }
+        }
+
+        /* ════════════════════════════════════════
+           HEADER
+           ════════════════════════════════════════ */
+        .top-bar {
+            position: sticky; top: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: center;
+            padding: 16px 32px;
+            background: rgba(5, 5, 8, 0.75);
+            backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border-dim);
+        }
+
+        .logo {
+            display: flex; align-items: center; gap: 10px;
+        }
+        .logo-icon {
+            width: 28px; height: 28px;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--emerald-dim);
+            border: 1px solid var(--emerald-mid);
+            border-radius: 8px;
+        }
+        .logo-icon .material-symbols-outlined {
+            font-size: 16px; color: var(--emerald);
+        }
+        .logo-text {
+            font-family: var(--font-mono);
+            font-weight: 700; font-size: 15px;
+            letter-spacing: 0.05em;
+            color: var(--emerald);
+        }
+        .logo-text span {
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        /* ════════════════════════════════════════
+           MAIN
+           ════════════════════════════════════════ */
+        .page-main {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            padding: 40px 20px; position: relative; z-index: 1;
+        }
+
+        /* ════════════════════════════════════════
+           CARD — animated border
+           ════════════════════════════════════════ */
+        .card-outer {
+            position: relative;
+            width: 100%; max-width: 460px;
+            border-radius: 20px;
+            padding: 1px;
+            background: linear-gradient(135deg, var(--emerald-mid), transparent 40%, transparent 60%, rgba(34,211,238,0.1));
+            animation: cardIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0; transform: translateY(20px) scale(0.98);
+        }
+        @keyframes cardIn {
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .card-inner {
+            background: var(--bg-card);
+            backdrop-filter: blur(32px);
+            border-radius: 19px;
+            padding: 44px 40px 36px;
+        }
+
+        /* Terminal-style header */
+        .terminal-bar {
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 28px;
+        }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .dot-r { background: #ff5f57; }
+        .dot-y { background: #febc2e; }
+        .dot-g { background: #28c840; }
+        .terminal-title {
+            margin-left: 8px;
+            font-family: var(--font-mono);
+            font-size: 11px; font-weight: 500;
+            color: var(--text-muted);
+            letter-spacing: 0.04em;
+        }
+
+        /* Card header */
+        .card-header { margin-bottom: 36px; }
+
+        .card-header h1 {
+            font-size: 28px; font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+        .card-header h1 em {
+            font-style: normal;
+            background: linear-gradient(135deg, var(--emerald), var(--cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tagline {
+            font-family: var(--font-mono);
+            font-size: 12px; font-weight: 400;
+            color: var(--text-secondary);
+            letter-spacing: 0.02em;
+        }
+        .tagline .cursor-blink {
+            display: inline-block;
+            width: 7px; height: 14px;
+            background: var(--emerald);
+            margin-left: 2px;
+            vertical-align: middle;
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        /* ════════════════════════════════════════
+           FORM
+           ════════════════════════════════════════ */
+        .boot-form { display: flex; flex-direction: column; gap: 24px; }
+
+        .field {
+            position: relative;
+        }
+
+        .field-label {
+            display: flex; align-items: center; gap: 6px;
+            font-family: var(--font-mono);
+            font-size: 11px; font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 10px;
+            transition: color 0.25s;
+        }
+        .field-label .material-symbols-outlined {
+            font-size: 14px; color: var(--text-muted);
+            transition: color 0.25s;
+        }
+        .field:focus-within .field-label,
+        .field:focus-within .field-label .material-symbols-outlined {
+            color: var(--emerald);
+        }
+
+        .field-input {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border-dim);
+            border-radius: 10px;
+            padding: 14px 16px;
+            font-family: var(--font-mono);
+            font-size: 14px; font-weight: 400;
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+        }
+        .field-input::placeholder {
+            color: var(--text-muted); font-weight: 400;
+        }
+        .field-input:focus {
+            border-color: var(--border-glow);
+            box-shadow: 0 0 0 3px var(--emerald-dim), 0 2px 12px var(--emerald-glow);
+            background: rgba(52, 211, 153, 0.02);
+        }
+
+        /* ════════════════════════════════════════
+           CTA BUTTON
+           ════════════════════════════════════════ */
+        .cta-wrap { padding-top: 4px; }
+
+        .cta-btn {
+            position: relative;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            width: 100%; padding: 15px 0;
+            border: none; border-radius: 12px;
+            background: linear-gradient(135deg, #059669 0%, #34d399 50%, #059669 100%);
+            background-size: 200% auto;
+            color: #021a0f;
+            font-family: var(--font-mono);
+            font-size: 13px; font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            overflow: hidden;
+            transition: background-position 0.5s, transform 0.12s, box-shadow 0.3s;
+            box-shadow: 0 4px 20px rgba(52, 211, 153, 0.25);
+        }
+        .cta-btn:hover {
+            background-position: right center;
+            box-shadow: 0 6px 28px rgba(52, 211, 153, 0.4);
+        }
+        .cta-btn:active { transform: scale(0.97); }
+
+        .cta-btn::after {
+            content: '';
+            position: absolute; top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: linear-gradient(115deg, transparent 20%, rgba(255,255,255,0.15) 40%, rgba(255,255,255,0.15) 45%, transparent 65%);
+            transform: rotate(45deg) translateX(-120%);
+            pointer-events: none;
+        }
+        .cta-btn:hover::after {
+            animation: shimmer 0.7s ease forwards;
+        }
+        @keyframes shimmer {
+            100% { transform: rotate(45deg) translateX(80%); }
+        }
+
+        .cta-btn .material-symbols-outlined { font-size: 18px; }
+
+        /* ════════════════════════════════════════
+           STATUS INDICATOR
+           ════════════════════════════════════════ */
+        .status-row {
+            display: flex; align-items: center; gap: 8px;
+            margin-top: 20px;
+            padding: 10px 14px;
+            background: var(--emerald-dim);
+            border: 1px solid var(--emerald-mid);
+            border-radius: 8px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .status-row.visible { opacity: 1; }
+        .status-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--emerald);
+            animation: pulse-dot 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse-dot {
+            0%,100% { opacity: 1; }
+            50%     { opacity: 0.3; }
+        }
+        .status-text {
+            font-family: var(--font-mono);
+            font-size: 11px; font-weight: 500;
+            color: var(--text-green);
+            letter-spacing: 0.02em;
+        }
+
+        /* ════════════════════════════════════════
+           TOAST
+           ════════════════════════════════════════ */
+        .toast {
+            position: fixed; bottom: 28px; left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(12, 15, 28, 0.92);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--emerald-mid);
+            border-radius: 12px;
+            padding: 12px 24px;
+            display: flex; align-items: center; gap: 10px;
+            font-family: var(--font-mono);
+            font-size: 12px; font-weight: 500;
+            color: var(--text-green);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            opacity: 0;
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s;
+            z-index: 999;
+        }
+        .toast.show {
+            opacity: 1; transform: translateX(-50%) translateY(0);
+        }
+
+        /* ════════════════════════════════════════
+           FOOTER
+           ════════════════════════════════════════ */
+        .site-footer {
+            position: relative; z-index: 1;
+            border-top: 1px solid var(--border-dim);
+            background: rgba(5, 5, 8, 0.6);
+            padding: 16px 32px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .footer-text {
+            font-family: var(--font-mono);
+            font-size: 10px; font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        /* ════════════════════════════════════════
+           RESPONSIVE
+           ════════════════════════════════════════ */
+        @media (max-width: 520px) {
+            .card-inner { padding: 32px 24px 28px; }
+            .top-bar { padding: 14px 20px; }
+            .card-header h1 { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background -->
+    <div class="grid-bg" aria-hidden="true"></div>
+    <div class="glow-blob blob-1" aria-hidden="true"></div>
+    <div class="glow-blob blob-2" aria-hidden="true"></div>
+    <div class="glow-blob blob-3" aria-hidden="true"></div>
+
+    <!-- Header -->
+    <header class="top-bar">
+        <div class="logo">
+            <div class="logo-icon">
+                <span class="material-symbols-outlined">terminal</span>
+            </div>
+            <div class="logo-text">FirstBoot<span> _</span></div>
+        </div>
+    </header>
+
+    <!-- Main -->
+    <main class="page-main">
+        <div class="card-outer">
+            <div class="card-inner">
+
+                <!-- Terminal dots -->
+                <div class="terminal-bar">
+                    <div class="dot dot-r"></div>
+                    <div class="dot dot-y"></div>
+                    <div class="dot dot-g"></div>
+                    <span class="terminal-title">new_instance.sh</span>
+                </div>
+
+                <!-- Header -->
+                <div class="card-header">
+                    <h1>New hire.<br><em>New machine.</em></h1>
+                    <p class="tagline">onboarding provisioning tool<span class="cursor-blink"></span></p>
+                </div>
+
+                <!-- Form -->
+                <form class="boot-form" id="bootForm" onsubmit="handleMailSubmit(event)">
+                    <div class="field">
+                        <label class="field-label" for="username">
+                            <span class="material-symbols-outlined">person</span>
+                            username
+                        </label>
+                        <input class="field-input" id="username" name="username" type="text"
+                               placeholder="jdoe" required autocomplete="off" />
+                    </div>
+                    <div class="field">
+                        <label class="field-label" for="name">
+                            <span class="material-symbols-outlined">badge</span>
+                            full name
+                        </label>
+                        <input class="field-input" id="name" name="name" type="text"
+                               placeholder="John Doe" required autocomplete="off" />
+                    </div>
+                    <div class="cta-wrap">
+                        <button class="cta-btn" type="submit">
+                            <span class="material-symbols-outlined">rocket_launch</span>
+                            Provision &amp; Send
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Status indicator (shows after action) -->
+                <div class="status-row" id="statusRow">
+                    <div class="status-dot"></div>
+                    <span class="status-text" id="statusText">Ready</span>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast -->
+    <div class="toast" id="statusToast">
+        <span class="material-symbols-outlined" style="font-size:16px;">check_circle</span>
+        <span id="toastMsg"></span>
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-text">FirstBoot &mdash; GCP VM Onboarding</div>
+    </footer>
+
+    <!-- Logic -->
+    <script>
+        const JENKINS_TOKEN = 'send-that-mail';
+
+        async function handleMailSubmit(event) {
+            event.preventDefault();
+
+            const btn = document.querySelector('.cta-btn');
+            const username = document.getElementById('username').value.trim();
+            const name = document.getElementById('name').value.trim();
+
+            if (!username || !name) return;
+
+            // Disable button during request
+            btn.disabled = true;
+            btn.style.opacity = '0.6';
+            btn.style.pointerEvents = 'none';
+
+            try {
+                setStatus('Triggering Jenkins pipeline...');
+
+                const params = new URLSearchParams({
+                    token: JENKINS_TOKEN,
+                    USERNAME: username,
+                    NAME: name
+                });
+
+                const res = await fetch(`/api/trigger?${params.toString()}`, {
+                    method: 'POST',
+                });
+
+                if (res.ok || res.status === 201) {
+                    setStatus('Pipeline triggered — email is being sent');
+                    showToast(`✓ Email sent to ${username}@deutsche-boerse.com`);
+                } else if (res.status === 403) {
+                    throw new Error('Auth failed — check Jenkins token');
+                } else if (res.status === 404) {
+                    throw new Error('Jenkins job not found — check job path');
+                } else {
+                    throw new Error(`Jenkins returned ${res.status}`);
+                }
+            } catch (err) {
+                console.error(err);
+                setStatus('Failed: ' + err.message);
+                showToast('Error: ' + err.message);
+            } finally {
+                // Re-enable button
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
+            }
+        }
+
+        function setStatus(msg) {
+            const row = document.getElementById('statusRow');
+            const text = document.getElementById('statusText');
+            text.textContent = msg;
+            row.classList.add('visible');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('statusToast');
+            document.getElementById('toastMsg').textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 5000);
+        }
+    </script>
+
+</body>
+</html>
