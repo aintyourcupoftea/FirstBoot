@@ -13,3 +13,5 @@ COPY email-template.html /usr/share/nginx/html/email-template.html
 EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]
+
+118cb446e7642b0c430dfacac75e11858e
