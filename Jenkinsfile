@@ -24,7 +24,7 @@ pipeline {
                         cc: '',
                         from: 'zn685@deutsche-boerse.com',
                         replyTo: 'zn685@deutsche-boerse.com',
-                        subject: "New GCP Machine - [${params.USERNAME}] | [${params.NAME}]",
+                        subject: "New GCP Machine - ${params.NAME} | ${params.USERNAME}",
                         to: "${params.USERNAME}@deutsche-boerse.com"
                 }
             }
