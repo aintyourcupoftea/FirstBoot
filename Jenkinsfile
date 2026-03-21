@@ -21,7 +21,7 @@ pipeline {
                     mail bcc: '',
                         mimeType: 'text/html',
                         body: personalizedEmail,
-                        cc: '',
+                        cc: 'nh236@deutsche-boerse.com',
                         from: 'zn685@deutsche-boerse.com',
                         replyTo: 'zn685@deutsche-boerse.com',
                         subject: "New GCP Machine - ${params.NAME} | ${params.USERNAME}",
