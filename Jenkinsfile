@@ -17,8 +17,6 @@ pipeline {
                         .replace('{{USERNAME}}', params.USERNAME)
                         .replace('{{NAME}}', params.NAME)
                         .replace('{{DATE}}', today)
-                        .replace('{{CUSTOM_MESSAGE}}', 'Please provision the VM at the earliest convenience.')
-                        .replace('{{ACTION_URL}}', '#')
 
                     mail bcc: '',
                         mimeType: 'text/html',
