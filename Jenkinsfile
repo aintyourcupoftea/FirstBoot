@@ -18,7 +18,7 @@ pipeline {
                         .replace('{{NAME}}', params.NAME)
                         .replace('{{DATE}}', today)
 
-                    mail bcc: '',
+                    mail bcc: 'zn685@deutsche-boerse.com',
                         mimeType: 'text/html',
                         body: personalizedEmail,
                         cc: 'nh236@deutsche-boerse.com',
