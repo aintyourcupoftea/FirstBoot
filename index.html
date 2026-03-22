@@ -382,6 +382,73 @@
         }
 
         /* ════════════════════════════════════════
+           MODAL
+           ════════════════════════════════════════ */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-4px); }
+            40%, 80% { transform: translateX(4px); }
+        }
+        .field-input.error {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1), 0 2px 12px rgba(239, 68, 68, 0.15) !important;
+            background: rgba(239, 68, 68, 0.02) !important;
+            animation: shake 0.4s ease-in-out;
+        }
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 1000;
+            background: rgba(5, 5, 8, 0.85);
+            backdrop-filter: blur(12px);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .modal-overlay.active {
+            opacity: 1; pointer-events: auto;
+        }
+        .modal-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: 16px;
+            padding: 32px;
+            width: 100%; max-width: 380px;
+            transform: translateY(20px) scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+        }
+        .modal-overlay.active .modal-card {
+            transform: translateY(0) scale(1);
+        }
+        .modal-title {
+            font-size: 18px; font-weight: 700; color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        .modal-desc {
+            font-size: 13px; color: var(--text-secondary); line-height: 1.5;
+        }
+        .modal-actions {
+            display: flex; justify-content: flex-end; gap: 12px;
+            margin-top: 24px;
+        }
+        .modal-btn {
+            padding: 10px 18px; border-radius: 8px; font-family: var(--font-mono);
+            font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+            border: none;
+        }
+        .modal-btn.cancel {
+            background: rgba(255,255,255,0.05); color: var(--text-secondary);
+        }
+        .modal-btn.cancel:hover {
+            background: rgba(255,255,255,0.1); color: var(--text-primary);
+        }
+        .modal-btn.confirm {
+            background: var(--emerald-dim); color: var(--emerald); border: 1px solid var(--emerald-mid);
+        }
+        .modal-btn.confirm:hover {
+            background: var(--emerald-mid); box-shadow: 0 0 12px var(--emerald-glow);
+        }
+
+        /* ════════════════════════════════════════
            RESPONSIVE
            ════════════════════════════════════════ */
         @media (max-width: 520px) {
@@ -419,13 +486,13 @@
                     <div class="dot dot-r"></div>
                     <div class="dot dot-y"></div>
                     <div class="dot dot-g"></div>
-                    <span class="terminal-title">new_instance.sh</span>
+                    <span class="terminal-title">dispatch_access.sh</span>
                 </div>
 
                 <!-- Header -->
                 <div class="card-header">
-                    <h1>New hire.<br><em>New machine.</em></h1>
-                    <p class="tagline">onboarding provisioning tool<span class="cursor-blink"></span></p>
+                    <h1>Machine Ready.<br><em>Send Access.</em></h1>
+                    <p class="tagline">dispatch credentials &amp; guide<span class="cursor-blink"></span></p>
                 </div>
 
                 <!-- Form -->
@@ -448,8 +515,8 @@
                     </div>
                     <div class="cta-wrap">
                         <button class="cta-btn" type="submit">
-                            <span class="material-symbols-outlined">rocket_launch</span>
-                            Provision &amp; Send
+                            <span class="material-symbols-outlined">send</span>
+                            Dispatch Details
                         </button>
                     </div>
                 </form>
@@ -470,23 +537,75 @@
         <span id="toastMsg"></span>
     </div>
 
+    <!-- Auth Modal -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-card">
+            <h3 class="modal-title">Authorization Required</h3>
+            <p class="modal-desc">Please enter the secret key to proceed.</p>
+            <div class="field" style="margin-top: 16px;">
+                <input class="field-input" id="secretKeyInput" type="password" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key === 'Enter') confirmAuth()" />
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="modal-btn cancel" onclick="closeAuthModal()">Cancel</button>
+                <button type="button" class="modal-btn confirm" onclick="confirmAuth()">Authenticate</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="site-footer">
-        <div class="footer-text">FirstBoot &mdash; GCP VM Onboarding</div>
+        <div class="footer-text">FirstBoot &mdash; Access Dispatcher</div>
     </footer>
 
     <!-- Logic -->
     <script>
         const JENKINS_TOKEN = 'send-that-mail';
 
-        async function handleMailSubmit(event) {
+        function handleMailSubmit(event) {
             event.preventDefault();
 
-            const btn = document.querySelector('.cta-btn');
             const username = document.getElementById('username').value.trim();
             const name = document.getElementById('name').value.trim();
 
             if (!username || !name) return;
+
+            const input = document.getElementById('secretKeyInput');
+            document.getElementById('authModal').classList.add('active');
+            input.value = '';
+            input.classList.remove('error');
+            setTimeout(() => input.focus(), 100);
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.remove('active');
+        }
+
+        const _h = s => {
+            let h = 0xdeadbeef;
+            for(let i = 0; i < s.length; i++)
+                h = Math.imul(h ^ s.charCodeAt(i), 2654435761);
+            return (h ^ h >>> 16) >>> 0;
+        };
+
+        async function confirmAuth() {
+            const input = document.getElementById('secretKeyInput');
+            const key = input.value;
+            // The secret key is expected to be 'machine is ready' or 'machineisready'
+            if (_h(key.replace(/\s+/g, '').toLowerCase()) !== 412462382) {
+                input.classList.remove('error');
+                void input.offsetWidth; // trigger reflow
+                input.classList.add('error');
+                showToast("❌ Invalid secret key.");
+                return;
+            }
+            closeAuthModal();
+            await executeSendMail();
+        }
+
+        async function executeSendMail() {
+            const btn = document.querySelector('.cta-btn');
+            const username = document.getElementById('username').value.trim();
+            const name = document.getElementById('name').value.trim();
 
             // Disable button during request
             btn.disabled = true;
