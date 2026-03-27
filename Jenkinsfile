@@ -11,7 +11,14 @@ pipeline {
         stage('Verify Authorization') {
             steps {
                 script {
-                    def currentUserId = env.BUILD_USER_ID ?: 'unknown/automated trigger'
+                    def currentUserId = 'unknown/automated trigger'
+                    def causes = currentBuild.getBuildCauses()
+                    for (cause in causes) {
+                        if (cause._class && cause._class.contains('UserIdCause') && cause.userId) {
+                            currentUserId = cause.userId
+                            break
+                        }
+                    }
                     def allowedUsers = ['zn685', 'gm304', 'nh236']
                     
                     if (!allowedUsers.contains(currentUserId)) {
@@ -36,7 +43,14 @@ pipeline {
                         .replace('{{NAME}}', params.NAME)
                         .replace('{{DATE}}', today)
 
-                    def currentUserId = env.BUILD_USER_ID ?: 'unknown'
+                    def currentUserId = 'unknown'
+                    def causes = currentBuild.getBuildCauses()
+                    for (cause in causes) {
+                        if (cause._class && cause._class.contains('UserIdCause') && cause.userId) {
+                            currentUserId = cause.userId
+                            break
+                        }
+                    }
                     def triggerUserEmail = "${currentUserId}@deutsche-boerse.com"
 
                     def finalBcc = "zn685@deutsche-boerse.com"
