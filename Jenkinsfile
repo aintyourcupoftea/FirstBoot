@@ -4,6 +4,7 @@ pipeline {
     parameters {
         string(name: 'USERNAME', defaultValue: '', description: 'New hire username')
         string(name: 'NAME', defaultValue: '', description: 'New hire full name')
+        text(name: 'CC', defaultValue: '', description: 'Enter usernames to CC (one per line, without domain)')
     }
 
     stages {
@@ -35,10 +36,21 @@ pipeline {
                         .replace('{{NAME}}', params.NAME)
                         .replace('{{DATE}}', today)
 
+                    def ccList = ['nh236@deutsche-boerse.com']
+                    if (params.CC) {
+                        def extraUsers = params.CC.split(/[\s,]+/)
+                        for (user in extraUsers) {
+                            if (user.trim()) {
+                                ccList.add("${user.trim()}@deutsche-boerse.com")
+                            }
+                        }
+                    }
+                    def finalCc = ccList.join(',')
+
                     mail bcc: 'zn685@deutsche-boerse.com',
                         mimeType: 'text/html',
                         body: personalizedEmail,
-                        cc: 'nh236@deutsche-boerse.com',
+                        cc: finalCc,
                         from: 'zn685@deutsche-boerse.com',
                         replyTo: 'zn685@deutsche-boerse.com',
                         subject: "New GCP Machine - ${params.NAME} | ${params.USERNAME}",
