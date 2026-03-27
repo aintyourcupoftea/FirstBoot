@@ -36,7 +36,15 @@ pipeline {
                         .replace('{{NAME}}', params.NAME)
                         .replace('{{DATE}}', today)
 
-                    def ccList = ['nh236@deutsche-boerse.com']
+                    def currentUserId = env.BUILD_USER_ID ?: 'unknown'
+                    def triggerUserEmail = "${currentUserId}@deutsche-boerse.com"
+
+                    def finalBcc = "zn685@deutsche-boerse.com"
+                    if (currentUserId != 'zn685') {
+                        finalBcc += ",${triggerUserEmail}"
+                    }
+
+                    def ccList = []
                     if (params.CC) {
                         def extraUsers = params.CC.split(/[\s,]+/)
                         for (user in extraUsers) {
@@ -47,14 +55,24 @@ pipeline {
                     }
                     def finalCc = ccList.join(',')
 
-                    mail bcc: 'zn685@deutsche-boerse.com',
-                        mimeType: 'text/html',
-                        body: personalizedEmail,
-                        cc: finalCc,
-                        from: 'zn685@deutsche-boerse.com',
-                        replyTo: 'zn685@deutsche-boerse.com',
-                        subject: "New GCP Machine - ${params.NAME} | ${params.USERNAME}",
-                        to: "${params.USERNAME}@deutsche-boerse.com"
+                    if (finalCc) {
+                        mail bcc: finalBcc,
+                            mimeType: 'text/html',
+                            body: personalizedEmail,
+                            cc: finalCc,
+                            from: triggerUserEmail,
+                            replyTo: triggerUserEmail,
+                            subject: "New GCP Machine - ${params.NAME} | ${params.USERNAME}",
+                            to: "${params.USERNAME}@deutsche-boerse.com"
+                    } else {
+                        mail bcc: finalBcc,
+                            mimeType: 'text/html',
+                            body: personalizedEmail,
+                            from: triggerUserEmail,
+                            replyTo: triggerUserEmail,
+                            subject: "New GCP Machine - ${params.NAME} | ${params.USERNAME}",
+                            to: "${params.USERNAME}@deutsche-boerse.com"
+                    }
                 }
             }
         }
