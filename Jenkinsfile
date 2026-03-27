@@ -12,13 +12,21 @@ pipeline {
             steps {
                 script {
                     def currentUserId = 'unknown/automated trigger'
+                    def currentUserName = 'unknown'
                     def causes = currentBuild.getBuildCauses()
                     for (cause in causes) {
                         if (cause._class && cause._class.contains('UserIdCause') && cause.userId) {
                             currentUserId = cause.userId
+                            currentUserName = cause.userName ?: 'unknown'
                             break
                         }
                     }
+                    
+                    echo "===================================="
+                    echo "Pipeline executed by: ${currentUserId}"
+                    echo "User Name: ${currentUserName}"
+                    echo "===================================="
+
                     def allowedUsers = ['zn685', 'gm304', 'nh236']
                     
                     if (!allowedUsers.contains(currentUserId)) {
