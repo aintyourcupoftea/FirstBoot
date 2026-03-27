@@ -46,11 +46,6 @@ pipeline {
                     def today = new Date().format('dd MMM yyyy')
                     def emailTemplate = readFile('email-template.html')
 
-                    def personalizedEmail = emailTemplate
-                        .replace('{{USERNAME}}', params.USERNAME)
-                        .replace('{{NAME}}', params.NAME)
-                        .replace('{{DATE}}', today)
-
                     def currentUserId = 'unknown'
                     def causes = currentBuild.getBuildCauses()
                     for (cause in causes) {
@@ -59,6 +54,18 @@ pipeline {
                             break
                         }
                     }
+                    
+                    def senderName = 'C7 SCS CloudInfra' // Default to C7 SCS CloudInfra if user ID doesn't match the 3 known
+                    if (currentUserId == 'gm304') senderName = 'Anu'
+                    else if (currentUserId == 'nh236') senderName = 'Poojitha'
+                    else if (currentUserId == 'zn685') senderName = 'Amit'
+
+                    def personalizedEmail = emailTemplate
+                        .replace('{{USERNAME}}', params.USERNAME)
+                        .replace('{{NAME}}', params.NAME)
+                        .replace('{{DATE}}', today)
+                        .replace('{{SENDER_NAME}}', senderName)
+
                     def triggerUserEmail = "${currentUserId}@deutsche-boerse.com"
 
                     def finalBcc = "zn685@deutsche-boerse.com"
